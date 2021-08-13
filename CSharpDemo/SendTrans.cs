@@ -18,7 +18,7 @@ namespace CSharpDemo
     class SendTrans
     {
         private static byte[] prikey = Wallet.GetPrivateKeyFromWIF("wif string"); //user prikey
-        private static UInt160 toAddress = "to address".ToScriptHash(); // 指定的迁移销毁地址
+        private static UInt160 toAddress = "ANeo2toNeo3MigrationAddressxwPB2Hz".ToScriptHash(); // 指定的迁移销毁地址
         private static string N3Address = "NUs2zy9vTpaf5oUu1AKqgXGAhDrnQHt3uq"; //N3 用户地址
         private static string rpc = "http://seed1.ngd.network:20332"; //Testnet rpc url
 
