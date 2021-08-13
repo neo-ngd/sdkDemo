@@ -17,7 +17,9 @@ namespace CSharpDemo
 {
     class SendTrans
     {
-        private static UInt160 toAddress = "ATEjGpdidGyrzSzpzoqRDkHbpGzVbkUNUU".ToScriptHash(); // 指定的迁移销毁地址
+        private static byte[] prikey = Wallet.GetPrivateKeyFromWIF("wif string"); //user prikey
+        private static UInt160 toAddress = "to address".ToScriptHash(); // 指定的迁移销毁地址
+        private static string N3Address = "NUs2zy9vTpaf5oUu1AKqgXGAhDrnQHt3uq"; //N3 用户地址
         private static string rpc = "http://seed1.ngd.network:20332"; //Testnet rpc url
 
         private static UInt256 NEOHash = Blockchain.GoverningToken.Hash;
@@ -33,8 +35,7 @@ namespace CSharpDemo
 
         //amount 是包含精度的 BigInteger
         public static void SendNep5Transaction(BigInteger amount)
-        {
-            byte[] prikey = Wallet.GetPrivateKeyFromWIF("KzRy5fJJvsJr37GmkhGZMb6LjsDcWt15CNwzDsYQH27Smdde4Fp6");
+        {            
             KeyPair keyPair = new KeyPair(prikey);
             var user = Contract.CreateSignatureContract(keyPair.PublicKey);
 
@@ -67,7 +68,7 @@ namespace CSharpDemo
             {
                 new TransactionAttribute() { Usage = TransactionAttributeUsage.Script, Data = user.ScriptHash.ToArray() },
                 new TransactionAttribute() { Usage = TransactionAttributeUsage.Remark1, Data = nonce },
-                new TransactionAttribute() { Usage = TransactionAttributeUsage.Remark14, Data = Encoding.UTF8.GetBytes("NUs2zy9vTpaf5oUu1AKqgXGAhDrnQHt3uq") } //N3 address
+                new TransactionAttribute() { Usage = TransactionAttributeUsage.Remark14, Data = Encoding.UTF8.GetBytes(N3Address) } //N3 address
             };
 
 
@@ -88,7 +89,6 @@ namespace CSharpDemo
 
         public static void SendGASTransaction(decimal amount)
         {
-            byte[] prikey = Wallet.GetPrivateKeyFromWIF("KzRy5fJJvsJr37GmkhGZMb6LjsDcWt15CNwzDsYQH27Smdde4Fp6");
             KeyPair keyPair = new KeyPair(prikey);
             var user = Contract.CreateSignatureContract(keyPair.PublicKey);
 
@@ -104,7 +104,7 @@ namespace CSharpDemo
             {
                 new TransactionAttribute() { Usage = TransactionAttributeUsage.Script, Data = user.ScriptHash.ToArray() },
                 new TransactionAttribute() { Usage = TransactionAttributeUsage.Remark1, Data = nonce },
-                new TransactionAttribute() { Usage = TransactionAttributeUsage.Remark14, Data = Encoding.UTF8.GetBytes("NUs2zy9vTpaf5oUu1AKqgXGAhDrnQHt3uq") } //N3 address
+                new TransactionAttribute() { Usage = TransactionAttributeUsage.Remark14, Data = Encoding.UTF8.GetBytes(N3Address) } //N3 address
             };
 
             //GAS < 20 就多收 1 GAS 网络费
@@ -171,8 +171,7 @@ namespace CSharpDemo
 
         //发送 NEO 时 amount 只能是整数
         public static void SendNEOTransaction(decimal amount)
-        {
-            byte[] prikey = Wallet.GetPrivateKeyFromWIF("KzRy5fJJvsJr37GmkhGZMb6LjsDcWt15CNwzDsYQH27Smdde4Fp6");
+        {            
             KeyPair keyPair = new KeyPair(prikey);
             var user = Contract.CreateSignatureContract(keyPair.PublicKey);
 
@@ -188,7 +187,7 @@ namespace CSharpDemo
             {
                 new TransactionAttribute() { Usage = TransactionAttributeUsage.Script, Data = user.ScriptHash.ToArray() },
                 new TransactionAttribute() { Usage = TransactionAttributeUsage.Remark1, Data = nonce },
-                new TransactionAttribute() { Usage = TransactionAttributeUsage.Remark14, Data = Encoding.UTF8.GetBytes("NUs2zy9vTpaf5oUu1AKqgXGAhDrnQHt3uq") } //N3 address
+                new TransactionAttribute() { Usage = TransactionAttributeUsage.Remark14, Data = Encoding.UTF8.GetBytes(N3Address) } //N3 address
             };
 
             neoList.Sort((a, b) =>
