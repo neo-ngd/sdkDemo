@@ -108,7 +108,7 @@ namespace CSharpDemo
             };
 
             //GAS < 20 就多收 1 GAS 网络费
-            decimal net_fee = amount > 20 ? 0 : 1;
+            decimal net_fee = amount >= 20 ? 0 : 1;
             decimal need_gas = amount + net_fee;
 
             gasList.Sort((a, b) =>
@@ -232,7 +232,7 @@ namespace CSharpDemo
             }
 
             //NEO < 10 就多收 1 GAS 网络费
-            decimal net_fee = amount > 10 ? 0 : 1;
+            decimal net_fee = amount >= 10 ? 0 : 1;
             if (net_fee > 0)
             {
                 List<UTXO> gasList = GetUTXOsByAddress(GASHash, user.Address);
