@@ -9,8 +9,9 @@ And the author is not responsible for any asset loss.
 
 ---
 
-Before you get started, make sure you have the right black hole N3 address. 
-And a stable node rpc port is also required.
+Before you get started, make sure you have the right black hole Neo Legacy address. 
+And a stable node rpc port is also required. 
+For more information about migration, refer to [migration](https://neo.org/migration).
 
 Then a neo wallet file in JSON format or some neo accounts are needed. 
 The demo code can even handle the situation that you have multiple accounts, 
