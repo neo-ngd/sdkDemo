@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/joeqian10/neo-gogogo/wallet"
+	"math/big"
 )
 
 type AccountAndPay struct {
@@ -38,7 +39,7 @@ func (us AccountAndPaySlice) RemoveAt(index int) []AccountAndPay {
 type Nep5AccountAndPay struct {
 	Account *wallet.Account
 	AssetId string
-	Value uint64
+	Value   *big.Int
 }
 
 type Nep5AccountAndPaySlice []Nep5AccountAndPay
@@ -48,7 +49,7 @@ func (us Nep5AccountAndPaySlice) Len() int {
 }
 
 func (us Nep5AccountAndPaySlice) Less(i int, j int) bool {
-	return us[i].Value < us[j].Value
+	return us[i].Value.Cmp(us[j].Value) < 0
 }
 
 func (us Nep5AccountAndPaySlice) Swap(i, j int) {

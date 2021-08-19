@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/binary"
 	"fmt"
 	"github.com/joeqian10/neo-gogogo/helper"
 	"github.com/joeqian10/neo-gogogo/sc"
@@ -12,8 +11,9 @@ import (
 	"sort"
 )
 
-var blackHoleAddress = "Aenzj5NnVgPUo3hAVy9cyFN9CbrgREyyJ1"
-var Nep5GateValue = uint64(10) // nneo
+var blackHoleAddress = "AJ36ZCpMhiHYMdMAUaP7i1i9pJz4jMdiQV"
+var YourNep5GateValue, _ = big.NewInt(0).SetString("10", 10) // use big.Int for nep5 amount, 10 for nneo, 2000000000 for cgas
+var ZERO = big.NewInt(0)
 
 type DemoHelper struct {
 	tb *tx.TransactionBuilder
@@ -189,7 +189,7 @@ func (this *DemoHelper) MigrateUtxo(assetId string, amount float64, n3Address st
 	return nil
 }
 
-func (this *DemoHelper) MigrateNep5(assetId string, amount uint64, n3Address string) error {
+func (this *DemoHelper) MigrateNep5(assetId string, amount *big.Int, n3Address string) error {
 	// get AccountAndPay
 	naaps, _, err := this.getNep5AccountAndPay(this.w.Accounts, assetId, amount)
 	if err != nil {
@@ -214,7 +214,7 @@ func (this *DemoHelper) MigrateNep5(assetId string, amount uint64, n3Address str
 		}
 		cp3 := sc.ContractParameter{
 			Type:  sc.Integer,
-			Value: *big.NewInt(int64(naap.Value)),
+			Value: naap.Value,
 		}
 		sb.MakeInvocationScript(assetHash.Bytes(), "transfer", []sc.ContractParameter{cp1, cp2, cp3})
 		script = append(script, sb.ToArray()...)
@@ -257,7 +257,7 @@ func (this *DemoHelper) MigrateNep5(assetId string, amount uint64, n3Address str
 	itx.Attributes = []*tx.TransactionAttribute{attr}
 	itx.Gas = gasConsumed
 	netFee := helper.Fixed8FromInt64(0)
-	if amount < Nep5GateValue {
+	if amount.Cmp(YourNep5GateValue) < 0 {
 		netFee = helper.Fixed8FromInt64(1)
 	}
 	fee := netFee.Add(itx.Gas)
@@ -377,13 +377,13 @@ func (this *DemoHelper) getAccountAndPay(accounts []*wallet.Account, assetId str
 }
 
 // amount must multiply D
-func (this *DemoHelper) getNep5AccountAndPay(accounts []*wallet.Account, assetId string, amount uint64) ([]Nep5AccountAndPay, uint64, error) {
+func (this *DemoHelper) getNep5AccountAndPay(accounts []*wallet.Account, assetId string, amount *big.Int) ([]Nep5AccountAndPay, *big.Int, error) {
 	assetScriptHash, _ := helper.UInt160FromString(assetId)
 
-	if amount == 0 {
-		return nil, 0, nil
+	if amount.Cmp(ZERO) == 0 {
+		return nil, ZERO, nil
 	}
-	sum := uint64(0)
+	sum := big.NewInt(0)
 	naaps := make([]Nep5AccountAndPay, 0)
 	for _, account := range accounts {
 		addressScriptHash, _ := helper.AddressToScriptHash(account.Address)
@@ -397,21 +397,18 @@ func (this *DemoHelper) getNep5AccountAndPay(accounts []*wallet.Account, assetId
 		script := sb.ToArray()
 		response := this.tb.Client.InvokeScript(helper.BytesToHex(script), helper.ZeroScriptHashString)
 		if response.HasError() {
-			return nil, 0, fmt.Errorf(response.GetErrorInfo())
+			return nil, ZERO, fmt.Errorf(response.GetErrorInfo())
 		}
 		if response.Result.State == "FAULT" {
-			return nil, 0, fmt.Errorf("engine faulted")
+			return nil, ZERO, fmt.Errorf("engine faulted")
 		}
 		if len(response.Result.Stack) == 0 {
-			return nil, 0, fmt.Errorf("no stack result returned")
+			return nil, ZERO, fmt.Errorf("no stack result returned")
 		}
 		stack := response.Result.Stack[0]
 		bytes := helper.HexToBytes(stack.Value.(string))
-		for len(bytes) < 8 {
-			bytes = append(bytes, byte(0x00))
-		}
-		balance := binary.LittleEndian.Uint64(bytes)
-		sum += balance
+		balance := helper.BigIntFromNeoBytes(bytes)
+		sum.Add(sum, balance)
 
 		naap := Nep5AccountAndPay{
 			Account: account,
@@ -422,31 +419,31 @@ func (this *DemoHelper) getNep5AccountAndPay(accounts []*wallet.Account, assetId
 		naaps = append(naaps, naap)
 	}
 
-	if sum < amount {
-		return nil, 0, fmt.Errorf("insufficient funds of " + assetId)
+	if sum.Cmp(amount) < 0 {
+		return nil, ZERO, fmt.Errorf("insufficient funds of " + assetId)
 	}
 	// sort in descending order
 	sort.Sort(sort.Reverse(Nep5AccountAndPaySlice(naaps)))
 
 	results := make([]Nep5AccountAndPay, 0)
-	sumRe := uint64(0)
+	sumRe := big.NewInt(0)
 	var i int = 0
 	var a = amount
-	for i < len(naaps) && naaps[i].Value >= a {
-		a -= naaps[i].Value
+	for i < len(naaps) && naaps[i].Value.Cmp(a) >= 0 {
+		a.Sub(a, naaps[i].Value)
 		results = append(results, naaps[i])
-		sumRe += naaps[i].Value
+		sumRe.Add(sumRe, naaps[i].Value)
 		i++
 	}
-	if a == 0 {
+	if a.Cmp(ZERO) == 0 {
 		return results, sumRe, nil
 	}
 
-	for i < len(naaps) && naaps[i].Value >= a {
+	for i < len(naaps) && naaps[i].Value.Cmp(a) >= 0 {
 		i++
 	}
 	results = append(results, naaps[i-1])
-	sumRe += naaps[i-1].Value
+	sumRe.Add(sumRe, naaps[i-1].Value)
 
 	return results, sumRe, nil
 }
