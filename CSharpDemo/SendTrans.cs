@@ -18,8 +18,8 @@ namespace CSharpDemo
     class SendTrans
     {
         private static byte[] prikey = Wallet.GetPrivateKeyFromWIF("wif string"); //user prikey
-        private static UInt160 toAddress = "ANeo2toNeo3MigrationAddressxwPB2Hz".ToScriptHash(); // 指定的迁移销毁地址
-        private static string N3Address = "NUs2zy9vTpaf5oUu1AKqgXGAhDrnQHt3uq"; //N3 用户地址
+        private static UInt160 toAddress = "ANeo2toNeo3MigrationAddressxwPB2Hz".ToScriptHash(); // Black hole address
+        private static string N3Address = "NUs2zy9vTpaf5oUu1AKqgXGAhDrnQHt3uq"; //User's N3 address
         private static string rpc = "http://seed1.ngd.network:20332"; //Testnet rpc url
 
         private static UInt256 NEOHash = Blockchain.GoverningToken.Hash;
@@ -33,7 +33,7 @@ namespace CSharpDemo
         private static UInt160 nNEOHash = UInt160.Parse("0x17da3881ab2d050fea414c80b3fa8324d756f60e");
         private static UInt160 cGASHash = UInt160.Parse("0x74f2dc36a68fdc4682034178eb2220729231db76");
 
-        //amount 是包含精度的 BigInteger
+        //amount type is BigInteger
         public static void SendNep5Transaction(BigInteger amount)
         {            
             KeyPair keyPair = new KeyPair(prikey);
@@ -42,13 +42,13 @@ namespace CSharpDemo
             byte[] script;
             using (ScriptBuilder sb = new ScriptBuilder())
             {
-                //sb.EmitAppCall(nNEOHash, "transfer", user.ScriptHash, toAddress, amount); //nNEO nNEO 数量为整数，如果有小数部分 N3 收到的 NEO 会做向下取整
+                //sb.EmitAppCall(nNEOHash, "transfer", user.ScriptHash, toAddress, amount); //nNEO, Migrating the decimal part of nNEO is not supported. The migration amount will be rounded down when distributing nNEO on N3 blockchain.
                 sb.EmitAppCall(cGASHash, "transfer", user.ScriptHash, toAddress, amount); //cGAS
                 script = sb.ToArray();
             }
 
             var tx = new InvocationTransaction();
-            //nNEO < 10 或 cGAS < 20 就收 1 GAS 网络费
+            //nNEO < 10 or cGAS < 20, need add 1 GAS network fee
             if (amount < 20_00000000)
             {
                 tx = MakeTranWithFee(user.Address, 1, script);
@@ -107,7 +107,7 @@ namespace CSharpDemo
                 new TransactionAttribute() { Usage = TransactionAttributeUsage.Remark14, Data = Encoding.UTF8.GetBytes(N3Address) } //N3 address
             };
 
-            //GAS < 20 就多收 1 GAS 网络费
+            //GAS < 20, need add 1 GAS network fee
             decimal net_fee = amount >= 20 ? 0 : 1;
             decimal need_gas = amount + net_fee;
 
@@ -169,7 +169,7 @@ namespace CSharpDemo
             Console.WriteLine(result.ToString());
         }
 
-        //发送 NEO 时 amount 只能是整数
+        //amount is an integer
         public static void SendNEOTransaction(decimal amount)
         {            
             KeyPair keyPair = new KeyPair(prikey);
@@ -231,7 +231,7 @@ namespace CSharpDemo
                 outputs.Add(outputchange);
             }
 
-            //NEO < 10 就多收 1 GAS 网络费
+            //NEO < 10, need add 1 GAS network fee
             decimal net_fee = amount >= 10 ? 0 : 1;
             if (net_fee > 0)
             {
