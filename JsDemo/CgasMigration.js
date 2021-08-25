@@ -48,17 +48,9 @@ sendCCtx();
       scriptHash: wallet.getScriptHashFromAddress(addressA)  //big ending
     };
 
-
     // add transaction inputs and outputs
     invocationTx.inputs[0] = new tx.TransactionInput(inputObj);
     invocationTx.addOutput(new tx.TransactionOutput(outPutObj));
-
-    //add timestamp
-    var timestamp = new Date().getTime();
-    invocationTx.addAttribute(
-        tx.TxAttrUsage.Remark,
-        u.str2hexstring(timestamp.toString())
-    );
     invocationTx.addAttribute(
       tx.TxAttrUsage.Remark14,
       u.str2hexstring("Your N3 address")
