@@ -26,7 +26,7 @@ let inputObj2 = {
 
 raw.addOutput(new Neon.tx.TransactionOutput(outPutObj1));
 raw.inputs[0] = new Neon.tx.TransactionInput(inputObj);
-raw.addAttribute(Neon.tx.TxAttrUsage.Remark14,"Your N3 address");
+raw.addAttribute(Neon.tx.TxAttrUsage.Remark14, u.str2hexstring("Your N3 address"));
 
 raw.addOutput(new Neon.tx.TransactionOutput(outPutObj2));
 raw.inputs[1] = new Neon.tx.TransactionInput(inputObj2);
